@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="src.com.PFweb.MemberDAO">
+
+	<!-- 아이디가 중복이 되는지 확인 하는 쿼리 -->
+	
+	<select id='getMemberCnt' parameterType="src.com.PFweb.MemberDTO" resultType="int">
+		select count(*)
+		from member mb, admin ad
+		where mb.member_ID = #{member_ID} or ad.admin_id= #{member_ID}
+	</select>
+	
+	<!-- 회원가입 insert를 하는 쿼리 -->
+	<insert id='getmemberRegForm' parameterType="src.com.PFweb.MemberDTO">
+		insert into member(
+			member_no,
+			member_ID,
+			member_pwd,
+			member_name,
+			member_birth,
+			member_email,
+			gender_code,
+			school_code,
+			religion_code
+		)
+		 values(
+			(select nvl(max(member_no),0)+1 from member),
+			#{member_ID},
+			#{member_pwd},
+			#{member_name},
+			#{member_birth},
+			#{member_email},
+			#{gender_code},
+			#{school_code},
+			#{religion_code}
+		)
+	</insert>
+	
+	<!-- 회원관리 페이지의 회원 리스트 구현 및 조건들을 검색는 쿼리 -->
+	<select id = 'getMemberList' parameterType="src.com.PFweb.MemberSearchDTO" resultType="src.com.PFweb.MemberDTO">
+		select k.*
+		from(
+				select f.*, rownum||'' "RNUM"
+				from(
+						select 
+							member_no "MEMBER_NO",
+							member_ID "MEMBER_ID",
+							member_pwd "MEMBER_PWD",
+							member_name "MEMBER_NAME",
+							to_char(to_date(member_birth, 'YYYY-MM-DD'), 'YYYY-MM-DD') "MEMBER_BIRTH",
+							member_email "MEMBER_EMAIL",
+							(select gender_name from code_gender cg where cg.gender_code = mb.gender_code) "GENDER_NAME",
+							gender_code "GENDER_CODE",
+							(select school_name from code_school cs where cs.school_code = mb.school_code) "SCHOOL_NAME",
+							school_code "SCHOOL_CODE",
+							(select religion_name from code_religion cr where cr.religion_code = mb.religion_code) "RELIGION_NAME",
+							reg_date "REG_DATE",
+							memberCheck "MEMBERCHECK"
+						from member mb
+						where 
+						 	1=1
+						 	<if test="keyword != null and keyword.length()>0">
+						 		and
+						 		
+								lower(member_ID) like lower('%${keyword}%')or
+								lower(member_name) like lower('%${keyword}%')or
+								lower(member_email) like lower('%${keyword}%')
+							</if>
+							<if test="gender != null and gender.length()>0">
+						 		and
+						 		
+								lower(gender_code) like lower('%${gender}%')
+							</if>
+							
+							<if test="school != null and school.length()>0">
+						 		and
+						 		
+								lower(school_code) like lower('%${school }%')
+							</if>
+							
+							<if test="religion != null and religion.length()>0">
+						 		and
+						 		
+								lower(religion_code) like lower('%${religion }%')
+							</if>
+							
+							<if test="religion != null and religion.length()>0">
+						 		and
+						 		
+								lower(religion_code) like lower('%${religion }%')
+							</if>
+							
+							<if test="begin_year != null and begin_year.length()>0">
+								and
+							
+								member_birth >= ${begin_year}||${begin_month}
+								
+								<if test="end_year != null and end_year.length()>0">
+									and
+								<![CDATA[
+									member_birth <= ${end_year}||${end_month}
+								 ]]> 
+								</if>
+							</if>
+							<if test="begin_year == null or begin_year.length()==0">
+								<if test="end_year != null and end_year.length()>0">
+										and
+									<![CDATA[
+										member_birth <= ${end_year}||${end_month}
+									 ]]> 
+								</if>
+							</if>
+						order by member_no desc
+							
+						) f<![CDATA[
+						where rownum <= ${selectPageNo * rowCntPerPage} 
+						]]>
+					) k
+					where RNUM >= ${selectPageNo * rowCntPerPage - rowCntPerPage + 1} 
+	</select>
+	
+	<!-- 회원이 정회원인지 확인하는 쿼리  -->
+	<update id="getmemberCheckCnt" parameterType="java.util.HashMap">
+	<if test="memberCheck.equals('false')">
+		update member set memberCheck = 'true' 
+		where member_no = #{member_no}
+	</if>
+
+	<if test="memberCheck.equals('true')">
+		update member set memberCheck = 'false'
+		where member_no = #{member_no}
+	</if>
+	
+	</update>
+	
+	<!-- select된 총 회원수 값을 받는 메소드 -->
+	<select id="getBoardListAllCnt" parameterType="src.com.PFweb.MemberSearchDTO" resultType="int">
+		select count(*)
+		from member mb
+		where 
+		 	1=1
+		 	<if test="keyword != null and keyword.length()>0">
+		 		and
+		 		
+				lower(member_ID) like lower('%${keyword}%')or
+				lower(member_name) like lower('%${keyword}%')or
+				lower(member_email) like lower('%${keyword}%')
+			</if>
+			<if test="gender != null and gender.length()>0">
+		 		and
+		 		
+				lower(gender_code) like lower('%${gender}%')
+			</if>
+			
+			<if test="school != null and school.length()>0">
+		 		and
+		 		
+				lower(school_code) like lower('%${school }%')
+			</if>
+			
+			<if test="religion != null and religion.length()>0">
+		 		and
+		 		
+				lower(religion_code) like lower('%${religion }%')
+			</if>
+			
+			<if test="religion != null and religion.length()>0">
+		 		and
+		 		
+				lower(religion_code) like lower('%${religion }%')
+			</if>
+			
+			<if test="begin_year != null and begin_year.length()>0">
+				and
+			
+				member_birth >= ${begin_year}||${begin_month}
+				
+				<if test="end_year != null and end_year.length()>0">
+					and
+				<![CDATA[
+					member_birth <= ${end_year}||${end_month}
+				 ]]> 
+				</if>
+
+			</if>
+			
+			<if test="begin_year == null or begin_year.length()==0">
+				<if test="end_year != null and end_year.length()>0">
+						and
+					<![CDATA[
+						member_birth <= ${end_year}||${end_month}
+					 ]]> 
+				</if>
+			</if>
+			order by member_no desc	
+	</select>
+</mapper>

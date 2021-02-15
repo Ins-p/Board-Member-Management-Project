@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="src.com.PFweb.LoginDAO">
+	
+	<!-- adminID인지 확인 하는 쿼리 -->
+	<select id='getAdminIdCnt' parameterType="hashmap" resultType="int">
+		select count(*)
+		from admin			
+		where admin_id= #{admin_id} and pwd= #{pwd}
+	</select> 
+	
+	<!-- 회원가입을한 멤버고 정회원인지 확인 하는 메소드 -->
+	<select id='getMemberIdCnt' parameterType="hashmap" resultType="int">
+		select count(*)
+		from member			
+		where member_ID= #{admin_id} and member_pwd= #{pwd}
+		and memberCheck = 'true'
+	</select> 
+</mapper>
