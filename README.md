@@ -7,3 +7,7 @@
 <hr> 
 </h4>
 
+![contents](https://user-images.githubusercontent.com/61300555/107963741-e4b50b80-6feb-11eb-90a4-c8075844a7ce.PNG)
+<hr>
+
+![skills](https://user-images.githubusercontent.com/61300555/107964309-7d4b8b80-6fec-11eb-96a3-803795de1553.PNG)
